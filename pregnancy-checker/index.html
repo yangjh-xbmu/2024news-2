@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>孕期食品配料表检查</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+
+h1 {
+  font-size: 28px; text-align: center; margin-bottom: 8px; color: #1a1a1a;
+}
+.subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 32px; }
+
+.upload-zone {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  background: #fff;
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color: #6366f1; background: #f8f7ff; }
+.upload-zone .icon { font-size: 48px; margin-bottom: 12px; }
+.upload-zone .hint { color: #888; font-size: 14px; margin-top: 8px; }
+.upload-zone input[type=file] { display: none; }
+
+.preview { margin-top: 20px; text-align: center; display: none; }
+.preview img { max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+.preview .btn-row { margin-top: 16px; }
+
+.btn {
+  display: inline-block; padding: 12px 32px; border: none; border-radius: 8px;
+  font-size: 16px; cursor: pointer; transition: background .2s;
+}
+.btn-primary { background: #6366f1; color: #fff; }
+.btn-primary:hover { background: #4f46e5; }
+.btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+.btn-outline { background: #fff; color: #6366f1; border: 1px solid #6366f1; }
+
+.progress { display: none; margin-top: 32px; }
+.progress .steps { display: flex; justify-content: space-between; align-items: flex-start; }
+.progress .step { text-align: center; flex: 1; position: relative; }
+.progress .step .dot {
+  width: 16px; height: 16px; border-radius: 50%; background: #e5e7eb;
+  margin: 0 auto 8px; transition: background .3s;
+}
+.progress .step.active .dot { background: #6366f1; animation: pulse 1s infinite; }
+.progress .step.done .dot { background: #22c55e; }
+.progress .step .label { font-size: 13px; color: #888; }
+.progress .step.done .label { color: #22c55e; }
+.progress .step.active .label { color: #6366f1; }
+.progress .line {
+  flex: 1; height: 2px; background: #e5e7eb; margin-top: 7px;
+  transition: background .3s;
+}
+.progress .line.done { background: #22c55e; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: .4; }
+}
+
+.results { display: none; margin-top: 32px; }
+.verdict {
+  text-align: center; padding: 24px; border-radius: 12px; margin-bottom: 24px;
+}
+.verdict.safe { background: #f0fdf4; border: 1px solid #bbf7d0; }
+.verdict.caution { background: #fffbeb; border: 1px solid #fde68a; }
+.verdict.avoid { background: #fef2f2; border: 1px solid #fecaca; }
+.verdict .badge {
+  display: inline-block; padding: 8px 24px; border-radius: 999px;
+  font-size: 20px; font-weight: 700; margin-bottom: 12px;
+}
+.verdict.safe .badge { background: #22c55e; color: #fff; }
+.verdict.caution .badge { background: #f59e0b; color: #fff; }
+.verdict.avoid .badge { background: #ef4444; color: #fff; }
+.verdict .summary { font-size: 15px; color: #555; }
+
+.ingredient-card {
+  background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 10px;
+  display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.ingredient-card .risk-dot {
+  width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+}
+.ingredient-card .risk-dot.safe { background: #22c55e; }
+.ingredient-card .risk-dot.caution { background: #f59e0b; }
+.ingredient-card .risk-dot.avoid { background: #ef4444; }
+.ingredient-card .info { flex: 1; }
+.ingredient-card .name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+.ingredient-card .reason { font-size: 14px; color: #666; }
+.ingredient-card .meta {
+  margin-top: 6px; font-size: 12px; color: #999; display: flex; gap: 12px;
+}
+
+.disclaimer {
+  margin-top: 32px; padding: 16px; background: #fff; border-radius: 10px;
+  font-size: 12px; color: #999; text-align: center; line-height: 1.8;
+}
+
+.error-msg {
+  display: none; margin-top: 20px; padding: 16px; background: #fef2f2;
+  border: 1px solid #fecaca; border-radius: 10px; color: #dc2626; font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>孕期食品配料表检查</h1>
+  <p class="subtitle">拍照上传食品配料表，逐项分析是否适合孕妇食用</p>
+
+  <div class="upload-zone" id="uploadZone">
+    <div class="icon">+</div>
+    <div style="font-size:18px;font-weight:600;">点击上传或拖拽图片到此处</div>
+    <div class="hint">支持 JPG、PNG 格式</div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png">
+  </div>
+
+  <div class="preview" id="preview">
+    <img id="previewImg" src="" alt="预览">
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btnCancel">重新选择</button>
+      <button class="btn btn-primary" id="btnAnalyze">开始分析</button>
+    </div>
+  </div>
+
+  <div class="progress" id="progress">
+    <div class="steps">
+      <div class="step" id="step1">
+        <div class="dot"></div>
+        <div class="label">提取文字</div>
+      </div>
+      <div class="line"></div>
+      <div class="step" id="step2">
+        <div class="dot"></div>
+        <div class="label">分析配料</div>
+      </div>
+      <div class="line"></div>
+      <div class="step" id="step3">
+        <div class="dot"></div>
+        <div class="label">完成</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="results" id="results">
+    <div class="verdict" id="verdict">
+      <div class="badge" id="verdictBadge"></div>
+      <div class="summary" id="verdictSummary"></div>
+    </div>
+    <div id="ingredientList"></div>
+  </div>
+
+  <div class="disclaimer">
+    本工具仅供参考，不能替代医生或营养师的专业建议。
+    食品安全规则基于 ACOG、FDA、WHO、CDC 及《中国居民膳食指南》等权威来源。
+    如有疑问，请咨询产科医生或注册营养师。
+  </div>
+</div>
+
+<script>
+const VERDICT_LABELS = { safe: '安全可食', caution: '需要注意', avoid: '建议避免' };
+const RISK_LABELS = { safe: '安全', caution: '慎用', avoid: '禁用' };
+const EVIDENCE_LABELS = { strong: '国际权威共识', moderate: '研究支持', traditional: '中医传统禁忌' };
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const previewImg = document.getElementById('previewImg');
+const btnCancel = document.getElementById('btnCancel');
+const btnAnalyze = document.getElementById('btnAnalyze');
+const progress = document.getElementById('progress');
+const errorMsg = document.getElementById('errorMsg');
+const results = document.getElementById('results');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) showPreview(f);
+});
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (f) showPreview(f);
+});
+
+btnCancel.addEventListener('click', () => {
+  preview.style.display = 'none';
+  uploadZone.style.display = '';
+  fileInput.value = '';
+  progress.style.display = 'none';
+  results.style.display = 'none';
+  errorMsg.style.display = 'none';
+});
+
+function showPreview(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    preview.style.display = 'block';
+    uploadZone.style.display = 'none';
+    results.style.display = 'none';
+    errorMsg.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetSteps() {
+  ['step1','step2','step3'].forEach(id => {
+    document.getElementById(id).className = 'step';
+  });
+  document.querySelectorAll('.progress .line').forEach(l => l.classList.remove('done'));
+}
+
+function setStep(n, status) {
+  const el = document.getElementById('step' + n);
+  el.className = 'step ' + status;
+  if (status === 'done' && n < 3) {
+    const lines = document.querySelectorAll('.progress .line');
+    lines[n - 1].classList.add('done');
+  }
+}
+
+btnAnalyze.addEventListener('click', async () => {
+  btnAnalyze.disabled = true;
+  errorMsg.style.display = 'none';
+  results.style.display = 'none';
+  progress.style.display = 'block';
+  resetSteps();
+  setStep(1, 'active');
+
+  const formData = new FormData();
+  const blob = await fetch(previewImg.src).then(r => r.blob());
+  formData.append('image', blob, 'photo.jpg');
+
+  // Step 1 → 2
+  setStep(1, 'done');
+  setStep(2, 'active');
+
+  try {
+    const resp = await fetch('/api/analyze', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(data.error || '请求失败');
+    }
+
+    setStep(2, 'done');
+    setStep(3, 'done');
+
+    renderResults(data);
+  } catch (e) {
+    setStep(2, 'done');
+    setStep(3, 'done');
+    errorMsg.textContent = '分析失败：' + e.message;
+    errorMsg.style.display = 'block';
+  }
+
+  btnAnalyze.disabled = false;
+});
+
+function renderResults(data) {
+  results.style.display = 'block';
+
+  const v = data.overall_verdict;
+  const verdictEl = document.getElementById('verdict');
+  verdictEl.className = 'verdict ' + v;
+  document.getElementById('verdictBadge').textContent = VERDICT_LABELS[v];
+  document.getElementById('verdictSummary').textContent = data.summary;
+
+  const list = document.getElementById('ingredientList');
+  list.innerHTML = data.ingredients.map(ing => `
+    <div class="ingredient-card">
+      <div class="risk-dot ${ing.risk}"></div>
+      <div class="info">
+        <div class="name">${escHtml(ing.name)} <span style="font-weight:400;font-size:13px;color:${ing.risk === 'avoid' ? '#ef4444' : ing.risk === 'caution' ? '#f59e0b' : '#22c55e'}">${RISK_LABELS[ing.risk]}</span></div>
+        <div class="reason">${escHtml(ing.reason)}</div>
+        <div class="meta">
+          <span>证据等级：${EVIDENCE_LABELS[ing.evidence_level] || ing.evidence_level}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

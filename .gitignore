@@ -44,6 +44,11 @@ Desktop.ini
 .env.local
 .env.*.local
 
+# === Playwright ===
+.playwright-mcp/
+*-preview.png
+*-result.png
+
 # === Logs ===
 *.log
 npm-debug.log*
