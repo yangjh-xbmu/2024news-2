@@ -21,7 +21,8 @@
 | 框架 | Next.js 15 App Router | Server Components + API Routes |
 | 数据库 | SQLite (better-sqlite3) | 零配置单文件，后续可迁 PostgreSQL |
 | ORM | Drizzle | 轻量类型安全，SQLite 原生支持好 |
-| 样式 | Tailwind CSS | 移动端优先响应式 |
+| 设计系统 | Ant Design Mobile | 移动端原生组件，中文文档一流 |
+| 样式 | Tailwind CSS + antd-mobile | 页面布局用 Tailwind，组件用 antd-mobile |
 | 认证 | 微信 OAuth 2.0 | 公众号/开放平台网页授权 |
 | 测试 | Vitest + Playwright | 单元 + E2E |
 | 部署 | VPS 直接运行 | 不用 Docker |
