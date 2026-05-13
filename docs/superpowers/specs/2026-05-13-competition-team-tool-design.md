@@ -25,6 +25,7 @@
 | 样式 | Tailwind CSS + antd-mobile | 页面布局用 Tailwind，组件用 antd-mobile |
 | 认证 | 微信 OAuth 2.0 | 公众号/开放平台网页授权 |
 | 测试 | Vitest + Playwright | 单元 + E2E |
+| 配色 | 极光绿 #00B96B | 成长、清新、校园感 |
 | 部署 | VPS 直接运行 | 不用 Docker |
 
 ## 数据模型
