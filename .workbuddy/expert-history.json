@@ -22,7 +22,18 @@
         "usedAt": 1776214370431,
         "industryId": "all"
       }
+    ],
+    "06c594da49664402b17373d53bd018d3": [
+      {
+        "expertId": "ContentCreator",
+        "name": "文爆爆",
+        "profession": "内容创作专家",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/03-Marketing/ContentCreator/ContentCreator.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/03-Marketing/ContentCreator/ContentCreator_zh.md",
+        "usedAt": 1776214370431,
+        "industryId": "all"
+      }
     ]
   },
-  "lastUpdated": 1776214530069
+  "lastUpdated": 1776220959661
 }
